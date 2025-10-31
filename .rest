@@ -28,21 +28,22 @@ Content-Type: application/json
 ###
 
 
-# POST https://einvoicing-test.onrender.com/testSage300/AR/invoiceBatches
-POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1
+POST https://einvoicing-test.onrender.com/testSage300/AR/invoiceBatches
+# POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1/comply
 # POST http://localhost:3000/testSage300/AR/invoiceBatches
 # POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1
 Content-Type: application/json
 
 
- { "server": "41.67.140.168",
+ { 
+    "server": "41.67.140.168",
 "company": "IETDAT", 
   "username": "admin",
  "password": "Sage@123",
   "serviceId": "5877C12E",
-  "num":123,
+  "num":12,
     "protocol":"http",
-  "firs_business_id":"62360f34-2e6b-4347-8616-292d75e11ece",
+  "firs_business_id":"711ef12e-c12e-4183-ab66-08ebdedcc8be",
   "timeFrom": "2019-04-23",
   "certificate":"bEF0V3FJbmo5cVZYbEdCblB4QVpjMG9HVWFrc29GM2diYWFkYWMyODRBUT0=",
   "publicKey":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyU0xpdDRtb1RMbFdjd1A4eEp6RQp3ZTdkRHExdC9kMi9zcXdQTlNVandablFPbklabVh4TXY4QUQxemMxdUErZ3VCc2tpUGdoSXd6ekxWYXJoNk1KCndEdVUxSC95V2FPZE1PTnZOQy9OWERybXB5cE5WUDZyQnV3LzVjSERMdEtoZlJ0YkdFa1JSVVF4MVAxUUJ6REsKVVRpaTRJOXJld29zcVQ4V1dBOE8zRVd5ZHJ5TEg1K3JpVmRUNVBPeU1jcU95YUR2bGRqWG9ZdnBSTHlkcmtDQQpkUWpMdkw0bG00TVNxS05WdGVJR0Y4ZWk4M3Juck5wR3hKTVVGYVMwekt5TzBJZlY0alBCK3ZXN3I1TXdzTjRvCkRnWVR2ME85Q050N3JoNlEvYi9XR3Ewakl3WHJ3c3JIQXE4TXNyUVlGV0JIOHpmejMwOHRWMTlRM1hPTnEyWEMKMHdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==",
@@ -50,6 +51,7 @@ Content-Type: application/json
 "tin":"00260528-0001",
 "email":"dcc@ieslglobal.com",
 "telephone":"08129384756",
+"business_description":"Oil and Gas Services",
 "postal_address":"Awolowo Road, Ikoyi, Lagos",
 "country":"NG",
 "firsApiKey":"Fs0ySKwAD50Z72pQCR4tZh10Qcvv1c",

@@ -76,6 +76,7 @@ async function mapSage300ToInvoiceJsonTest(
     customerData.party_name, // customerName
     "Sage300" // erp
   );
+  console.log(supplierData);
 
   return {
     businessId: firsBusinessId,
@@ -1331,6 +1332,527 @@ async function fetchSage300ARInvoiceWithCustomerFirsformatted(req, res) {
   }
 }
 
+async function fetchSage300ARInvoiceWithCustomerFirsformattedAndSign(req, res) {
+  try {
+    const {
+      server,
+      username,
+      password,
+      company,
+      certificate,
+      publicKey,
+      serviceId,
+      firs_business_id,
+      party_name,
+      tin,
+      email,
+      telephone,
+      postal_address,
+      country,
+      protocol,
+      num,
+      business_description,
+    } = req.body;
+    const { batchId, entryId } = req.params;
+
+    const host = "https://dev.mbs.hoptool.co/hoptoolaccesspoint";
+    const apiKey = req.body.firsApiKey;
+    const apiSecret = req.body.firsClientSecret;
+    const companyTin = tin;
+    const companyRecord = {
+      name: party_name || "Default Supplier",
+      tin: tin,
+      email: email,
+      telephone: telephone,
+      address: postal_address,
+      business_description: business_description,
+      city: "",
+      country: country || "",
+    };
+
+    if (!host || !apiKey || !apiSecret) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required parameters (host, apiKey, apiSecret)",
+      });
+    }
+
+    const batch = await fetchFromSage300Helper(
+      { server, company, username, password, id: batchId, protocol, num },
+      "AR/ARInvoiceBatches"
+    );
+
+    if (!batch || !batch.Invoices) {
+      return res.status(404).json({
+        success: false,
+        message: "Invoice batch not found",
+        errorCode: "BATCH_NOT_FOUND",
+      });
+    }
+
+    const invoices = Array.isArray(batch.Invoices)
+      ? batch.Invoices
+      : [batch.Invoices];
+    const invoice = invoices.find(
+      (inv) => String(inv.EntryNumber) === String(entryId)
+    );
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: "Invoice not found in batch",
+        errorCode: "INVOICE_NOT_FOUND",
+      });
+    }
+
+    let customer = null;
+    if (invoice.CustomerNumber) {
+      customer = await fetchFromSage300Helper(
+        {
+          server,
+          company,
+          username,
+          password,
+          id: `'${invoice.CustomerNumber}'`,
+          protocol,
+        },
+        "AR/ARCustomers"
+      );
+    }
+
+    const generateIrnUrl = `${host}/api/v1/invoice/generate-irn?reference=${invoice.DocumentNumber}`;
+
+    const generateRes = await axios.get(generateIrnUrl, {
+      headers: {
+        "x-api-key": apiKey,
+        "x-api-secret": apiSecret,
+        "business-tin": companyTin,
+        "Content-Type": "application/json",
+      },
+      timeout: 120000,
+    });
+
+    const dataIrn = generateRes?.data;
+
+    // Map into standard invoice JSON
+    const invoiceJson = await mapSage300ToInvoiceJsonTest(
+      serviceId,
+      dataIrn.data.irn,
+      firs_business_id,
+      companyRecord,
+      batch,
+      {
+        party_name: companyRecord.name,
+        tin: companyRecord.tin,
+        email: companyRecord.email,
+        telephone: companyRecord.telephone,
+        business_description: companyRecord.business_description || "",
+        postal_address: {
+          streetName: companyRecord.address,
+          cityName: companyRecord.city,
+          postalZone: "",
+          country: await getCountryCode(companyRecord.country),
+        },
+      },
+      customer
+        ? {
+            party_name: customer.CustomerName,
+            tin:
+              customer.TaxRegistrationNumber1 ||
+              customer.TaxRegistrationNumber2 ||
+              customer.TaxRegistrationNumber3 ||
+              customer.TaxRegistrationNumber4 ||
+              customer.TaxRegistrationNumber5 ||
+              "",
+            email: customer.Email,
+            telephone: formatInternationalPhone(customer.PhoneNumber),
+            business_description: customer.Description,
+            postal_address: {
+              street_name:
+                [
+                  customer.AddressLine1,
+                  customer.AddressLine2,
+                  customer.AddressLine3,
+                  customer.AddressLine4,
+                ]
+                  .filter((line) => line && line.trim() !== "")
+                  .join(", ")
+                  .trim() || null,
+              city_name: (customer.City || "").trim() || null,
+              postal_zone: (customer.ZipPostalCode || "").trim() || null,
+              country:
+                (await getCountryCode(customer.Country || "")) ||
+                (customer.Country || "").trim(),
+            },
+          }
+        : {}
+    );
+
+    // ✅ --- FIRS validation and signing ---
+    let validated = false;
+    let signed = false;
+    let validationResponse = null;
+    let signResponse = null;
+    const results = [];
+
+    try {
+      // Validate invoice
+      const validateRes = await axios.post(
+        `${host}/api/v1/invoice/validate`,
+        invoiceJson,
+        {
+          headers: {
+            "x-api-key": apiKey,
+            "x-api-secret": apiSecret,
+            "business-tin": companyTin,
+            "Content-Type": "application/json",
+          },
+          timeout: 120000,
+        }
+      );
+      validationResponse = validateRes.data;
+      validated = validateRes.data?.status === "SUCCESSFUL";
+      results.push({
+        invoice: invoice.DocumentNumber,
+        customer: invoice.CustomerNumber,
+        stage: "validation",
+        success: validated,
+        response: validationResponse,
+      });
+    } catch (err) {
+      results.push({
+        invoice: invoice.DocumentNumber,
+        customer: invoice.CustomerNumber,
+        stage: "validation",
+        success: false,
+        message: err.response?.data?.message || err.message,
+      });
+    }
+
+    if (validated) {
+      try {
+        const signRes = await axios.post(
+          `${host}/api/v1/invoice/sign`,
+          invoiceJson,
+          {
+            headers: {
+              "x-api-key": apiKey,
+              "x-api-secret": apiSecret,
+              "business-tin": companyTin,
+              "Content-Type": "application/json",
+            },
+            timeout: 120000,
+          }
+        );
+        signResponse = signRes.data;
+        signed = signRes.data?.status === "SUCCESSFUL";
+        results.push({
+          invoice: invoice.DocumentNumber,
+          customer: invoice.CustomerNumber,
+          stage: "sign",
+          success: signed,
+          response: signResponse,
+        });
+      } catch (err) {
+        results.push({
+          invoice: invoice.DocumentNumber,
+          customer: invoice.CustomerNumber,
+          stage: "sign",
+          success: false,
+          message: err.response?.data?.message || err.message,
+        });
+      }
+    }
+
+    // ✅ Return final response including validation & signing results
+    return res.status(200).json({
+      //   success: true,
+      //   message: "Fetched, validated, and signed AR invoice with Customer",
+      data: {
+        // invoice: invoiceJson,
+        results,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "Error in fetchSage300ARInvoiceWithCustomerFirsformattedAndSign:",
+      err
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch, validate, or sign AR Invoice",
+      errorCode: "SERVER_ERROR",
+      details: err.message,
+    });
+  }
+}
+
+async function fetchSage300ARInvoiceWithCustomerFirsformattedAndSignResolve(
+  req,
+  res
+) {
+  try {
+    const {
+      server,
+      username,
+      password,
+      company,
+      certificate,
+      publicKey,
+      serviceId,
+      firs_business_id,
+      party_name,
+      tin,
+      email,
+      telephone,
+      postal_address,
+      country,
+      protocol,
+      num,
+      business_description,
+    } = req.body;
+    const { batchId, entryId } = req.params;
+
+    const host = "https://dev.mbs.hoptool.co/hoptoolaccesspoint";
+    const apiKey = req.body.firsApiKey;
+    const apiSecret = req.body.firsClientSecret;
+    const companyTin = tin;
+    const companyRecord = {
+      name: party_name || "Default Supplier",
+      tin: tin,
+      email: email,
+      telephone: telephone,
+      address: postal_address,
+      business_description: business_description,
+      city: "",
+      country: country || "",
+    };
+
+    if (!host || !apiKey || !apiSecret) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required parameters (host, apiKey, apiSecret)",
+      });
+    }
+
+    const batch = await fetchFromSage300Helper(
+      { server, company, username, password, id: batchId, protocol, num },
+      "AR/ARInvoiceBatches"
+    );
+
+    if (!batch || !batch.Invoices) {
+      return res.status(404).json({
+        success: false,
+        message: "Invoice batch not found",
+        errorCode: "BATCH_NOT_FOUND",
+      });
+    }
+
+    const invoices = Array.isArray(batch.Invoices)
+      ? batch.Invoices
+      : [batch.Invoices];
+    const invoice = invoices.find(
+      (inv) => String(inv.EntryNumber) === String(entryId)
+    );
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: "Invoice not found in batch",
+        errorCode: "INVOICE_NOT_FOUND",
+      });
+    }
+
+    let customer = null;
+    if (invoice.CustomerNumber) {
+      customer = await fetchFromSage300Helper(
+        {
+          server,
+          company,
+          username,
+          password,
+          id: `'${invoice.CustomerNumber}'`,
+          protocol,
+        },
+        "AR/ARCustomers"
+      );
+    }
+
+    const generateIrnUrl = `${host}/api/v1/invoice/generate-irn?reference=${invoice.DocumentNumber}`;
+
+    const generateRes = await axios.get(generateIrnUrl, {
+      headers: {
+        "x-api-key": apiKey,
+        "x-api-secret": apiSecret,
+        "business-tin": companyTin,
+        "Content-Type": "application/json",
+      },
+      timeout: 120000,
+    });
+
+    const dataIrn = generateRes?.data;
+
+    // Map into standard invoice JSON
+    const invoiceJson = await mapSage300ToInvoiceJsonTest(
+      serviceId,
+      dataIrn.data.irn,
+      firs_business_id,
+      companyRecord,
+      batch,
+      {
+        party_name: companyRecord.name,
+        tin: companyRecord.tin,
+        email: companyRecord.email,
+        telephone: companyRecord.telephone,
+        business_description: companyRecord.business_description || "",
+        postal_address: {
+          streetName: companyRecord.address,
+          cityName: companyRecord.city,
+          postalZone: "",
+          country: await getCountryCode(companyRecord.country),
+        },
+      },
+      customer
+        ? {
+            party_name: customer.CustomerName,
+            tin:
+              customer.TaxRegistrationNumber1 ||
+              customer.TaxRegistrationNumber2 ||
+              customer.TaxRegistrationNumber3 ||
+              customer.TaxRegistrationNumber4 ||
+              customer.TaxRegistrationNumber5 ||
+              "1234567890",
+            email:
+              customer.Email ||
+              `${customer.CustomerName.replace(
+                /\s+/g,
+                ""
+              ).toLowerCase()}@example.com`,
+            telephone: formatInternationalPhone(customer.PhoneNumber),
+            business_description: customer.Description,
+            postal_address: {
+              street_name:
+                [
+                  customer.AddressLine1,
+                  customer.AddressLine2,
+                  customer.AddressLine3,
+                  customer.AddressLine4,
+                ]
+                  .filter((line) => line && line.trim() !== "")
+                  .join(", ")
+                  .trim() || null,
+              city_name: (customer.City || "").trim() || null,
+              postal_zone: (customer.ZipPostalCode || "").trim() || null,
+              country:
+                (await getCountryCode(customer.Country || "")) ||
+                (customer.Country || "").trim() ||
+                "NG",
+            },
+          }
+        : {}
+    );
+
+    // ✅ --- FIRS validation and signing ---
+    let validated = false;
+    let signed = false;
+    let validationResponse = null;
+    let signResponse = null;
+    const results = [];
+
+    try {
+      // Validate invoice
+      const validateRes = await axios.post(
+        `${host}/api/v1/invoice/validate`,
+        invoiceJson,
+        {
+          headers: {
+            "x-api-key": apiKey,
+            "x-api-secret": apiSecret,
+            "business-tin": companyTin,
+            "Content-Type": "application/json",
+          },
+          timeout: 120000,
+        }
+      );
+      validationResponse = validateRes.data;
+      validated = validateRes.data?.status === "SUCCESSFUL";
+      results.push({
+        invoice: invoice.DocumentNumber,
+        customer: invoice.CustomerNumber,
+        stage: "validation",
+        success: validated,
+        response: validationResponse,
+      });
+    } catch (err) {
+      results.push({
+        invoice: invoice.DocumentNumber,
+        customer: invoice.CustomerNumber,
+        stage: "validation",
+        success: false,
+        message: err.response?.data?.message || err.message,
+      });
+    }
+
+    if (validated) {
+      try {
+        const signRes = await axios.post(
+          `${host}/api/v1/invoice/sign`,
+          invoiceJson,
+          {
+            headers: {
+              "x-api-key": apiKey,
+              "x-api-secret": apiSecret,
+              "business-tin": companyTin,
+              "Content-Type": "application/json",
+            },
+            timeout: 120000,
+          }
+        );
+        signResponse = signRes.data;
+        signed = signRes.data?.status === "SUCCESSFUL";
+        results.push({
+          invoice: invoice.DocumentNumber,
+          customer: invoice.CustomerNumber,
+          stage: "sign",
+          success: signed,
+          response: signResponse,
+        });
+      } catch (err) {
+        results.push({
+          invoice: invoice.DocumentNumber,
+          customer: invoice.CustomerNumber,
+          stage: "sign",
+          success: false,
+          message: err.response?.data?.message || err.message,
+        });
+      }
+    }
+
+    // ✅ Return final response including validation & signing results
+    return res.status(200).json({
+      //   success: true,
+      //   message: "Fetched, validated, and signed AR invoice with Customer",
+      data: {
+        // invoice: invoiceJson,
+        results,
+      },
+    });
+  } catch (err) {
+    console.error(
+      "Error in fetchSage300ARInvoiceWithCustomerFirsformattedAndSign:",
+      err
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch, validate, or sign AR Invoice",
+      errorCode: "SERVER_ERROR",
+      details: err.message,
+    });
+  }
+}
+
 //new function to be used for mapping pulled invoices and updating the table
 //new function to be used for mapping pulled invoices and updating the table
 //new function to be used for mapping pulled invoices and updating the table
@@ -1469,4 +1991,6 @@ async function fetchSage300APInvoiceWithVendorFirsformatted(req, res) {
 module.exports = {
   fetchSage300BuyerInvoices,
   fetchSage300ARInvoiceWithCustomerFirsformatted,
+  fetchSage300ARInvoiceWithCustomerFirsformattedAndSign,
+  fetchSage300ARInvoiceWithCustomerFirsformattedAndSignResolve,
 };

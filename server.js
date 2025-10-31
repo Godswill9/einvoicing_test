@@ -8,6 +8,8 @@ const cors = require("cors"); // 👈 install: npm install cors
 const {
   fetchSage300BuyerInvoices,
   fetchSage300ARInvoiceWithCustomerFirsformatted,
+  fetchSage300ARInvoiceWithCustomerFirsformattedAndSign,
+  fetchSage300ARInvoiceWithCustomerFirsformattedAndSignResolve,
 } = require("./sage_300/invoice_controller");
 const {
   fetchSageX3CustomerInvoices,
@@ -47,6 +49,14 @@ app.post("/testSage300/AR/invoiceBatches", fetchSage300BuyerInvoices);
 app.post(
   "/testSage300/AR/firs_invoice/:batchId/:entryId",
   fetchSage300ARInvoiceWithCustomerFirsformatted
+);
+app.post(
+  "/testSage300/AR/firs_invoice/:batchId/:entryId/comply",
+  fetchSage300ARInvoiceWithCustomerFirsformattedAndSign
+);
+app.post(
+  "/testSage300/AR/firs_invoice/:batchId/:entryId/comply/resolve",
+  fetchSage300ARInvoiceWithCustomerFirsformattedAndSignResolve
 );
 
 app.listen(3000, () => {
