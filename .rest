@@ -1,6 +1,6 @@
-POST http://localhost:3000/testSageX3/mapped/ATC-ES01114-000002
+POST http://localhost:3000/testSageX3/invoices
+# POST http://localhost:3000/testSageX3/mapped/ATC-ES01114-000002
 Content-Type: application/json
-Authorization: Bearer 50feeac82cc4f6d9e7e7b7076306fa58531e67ae4fd54a0c8ee01f6391603ae6
 
 {
   "server": "172.171.220.163",
@@ -8,7 +8,110 @@ Authorization: Bearer 50feeac82cc4f6d9e7e7b7076306fa58531e67ae4fd54a0c8ee01f6391
   "environment": "SEED",
   "username": "admin",
   "password": "Samuel@123456",
-      "serviceId": "R26E2S2W",
-    "num":1000,
-    "protocol":"http"
+  "serviceId": "R26E2S2W",
+  "num":1000,
+  "protocol":"http",
+    "party_name": "Default Supplier",
+    "tin":"13123123122",
+    "email":"test@gmail.co",
+    "telephone":"08123456789",
+    "postal_address":{
+            "street_name":  "test street",
+            "city_name": "test city",
+            "postal_zone": "222111",
+            "country": "NG"
+          }
+    }
+
+###
+
+
+POST http://localhost:3000/testSage300/AR/invoiceBatches
+# POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1
+Content-Type: application/json
+
+{
+  "server": "41.67.140.168",
+"company": "IETDAT", 
+  "username": "admin",
+ "password": "Sage@123",
+  "serviceId": "5877C12E",
+  "num":123,
+    "protocol":"http",
+  "firs_business_id":"62360f34-2e6b-4347-8616-292d75e11ece",
+  "timeFrom": "2019-04-23",
+  "certificate":"bEF0V3FJbmo5cVZYbEdCblB4QVpjMG9HVWFrc29GM2diYWFkYWMyODRBUT0=",
+  "publicKey":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyU0xpdDRtb1RMbFdjd1A4eEp6RQp3ZTdkRHExdC9kMi9zcXdQTlNVandablFPbklabVh4TXY4QUQxemMxdUErZ3VCc2tpUGdoSXd6ekxWYXJoNk1KCndEdVUxSC95V2FPZE1PTnZOQy9OWERybXB5cE5WUDZyQnV3LzVjSERMdEtoZlJ0YkdFa1JSVVF4MVAxUUJ6REsKVVRpaTRJOXJld29zcVQ4V1dBOE8zRVd5ZHJ5TEg1K3JpVmRUNVBPeU1jcU95YUR2bGRqWG9ZdnBSTHlkcmtDQQpkUWpMdkw0bG00TVNxS05WdGVJR0Y4ZWk4M3Juck5wR3hKTVVGYVMwekt5TzBJZlY0alBCK3ZXN3I1TXdzTjRvCkRnWVR2ME85Q050N3JoNlEvYi9XR3Ewakl3WHJ3c3JIQXE4TXNyUVlGV0JIOHpmejMwOHRWMTlRM1hPTnEyWEMKMHdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==",
+"party_name":"International Energy Services Limited",
+"tin":"00260528-0001",
+"email":"dcc@ieslglobal.com",
+"telephone":"08129384756",
+"postal_address":"Awolowo Road, Ikoyi, Lagos",
+"country":"NG",
+"firsApiKey":"Fs0ySKwAD50Z72pQCR4tZh10Qcvv1c",
+"firsClientSecret":"wGF5XHgUUhapoXFAMwhINsZutaBUNCdqOCY2RPnDF7dsfigU1Br1TfVSO2kN"
+}
+
+
+###
+
+
+
+
+
+
+
+# {
+#   "server": "bml.ng",
+#   "company": "BMLDAT",
+#   "username": "adim",
+#   "password": "Adomos@2019",
+#   "serviceId": "R26E2S2W",
+#   "num":10,
+#   "firs_business_id":"62360f34-2e6b-4347-8616-292d75e11ece",
+#   "timeFrom": "2019-04-23",
+#   "certificate":"bEF0V3FJbmo5cVZYbEdCblB4QVpjMG9HVWFrc29GM2hiYWFkYWMyODRBUT0=",
+#   "publicKey":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyU0xpdDRtb1RMbFdjd1A4eEp6RQp3ZTdkRHExdC9kMi9zcXdQTlNVandablFPbklabVh4TXY4QUQxemMxdUErZ3VCc2tpUGdoSXd6ekxWYXJoNk1KCndEdVUxSC95V2FPZE1PTnZOQy9OWERybXB5cE5WUDZyQnV3LzVjSERMdEtoZlJ0YkdFa1JSVVF4MVAxUUJ6REsKVVRpaTRJOXJld29zcVQ4V1dBOE8zRVd5ZHJ5TEg1K3JpVmRUNVBPeU1jcU95YUR2bGRqWG9ZdnBSTHlkcmtDQQpkUWpMdkw0bG00TVNxS05WdGVJR0Y4ZWk4M3Juck5wR3hKTVVGYVMwekt5TzBJZlY0alBCK3ZXN3I1TXdzTjRvCkRnWVR2ME85Q050N3JoNlEvYi9XR3Ewakl3WHJ3c3JIQXE4TXNyUVlGV0JIOHpmejMwOHRWMTlRM1hPTnEyWEMKMHdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==",
+#       "party_name":"test name",
+#       "tin":"1234567890",
+#       "email":"test@gmail.co",
+#       "telephone":"08123456789",
+#       "postal_address":"test location",
+#       "country":"NG",
+#       "apiKey":"",
+#       "apiSecret":"",
+#       {"server": "41.67.140.168", "company": "IETDAT", "password": "Sage@123", "protocol": "http", "username": "admin"}
+# }
+
+###
+POST https://einvoicing-test.onrender.com/testSageX3
+Content-Type: application/json
+
+{
+  "server": "poloerp.com",
+  "port": 8124,
+  "environment": "POLO",
+  "username": "admin",
+  "password": "Polo@123$",
+   "serviceId": "R26E2S2W",
+   "num":1000,
+   "protocol":"https",
+  "certificate":"bEF0V3FJbmo5cVZYbEdCblB4QVpjMG9HVWFrc29GM2hiYWFkYWMyODRBUT0=",
+  "publicKey":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyU0xpdDRtb1RMbFdjd1A4eEp6RQp3ZTdkRHExdC9kMi9zcXdQTlNVandablFPbklabVh4TXY4QUQxemMxdUErZ3VCc2tpUGdoSXd6ekxWYXJoNk1KCndEdVUxSC95V2FPZE1PTnZOQy9OWERybXB5cE5WUDZyQnV3LzVjSERMdEtoZlJ0YkdFa1JSVVF4MVAxUUJ6REsKVVRpaTRJOXJld29zcVQ4V1dBOE8zRVd5ZHJ5TEg1K3JpVmRUNVBPeU1jcU95YUR2bGRqWG9ZdnBSTHlkcmtDQQpkUWpMdkw0bG00TVNxS05WdGVJR0Y4ZWk4M3Juck5wR3hKTVVGYVMwekt5TzBJZlY0alBCK3ZXN3I1TXdzTjRvCkRnWVR2ME85Q050N3JoNlEvYi9XR3Ewakl3WHJ3c3JIQXE4TXNyUVlGV0JIOHpmejMwOHRWMTlRM1hPTnEyWEMKMHdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
+}
+###
+POST https://einvoicing-test.onrender.com/testSageX3/mapped/PLU01-GCF0000000001
+Content-Type: application/json
+
+{
+  "server": "poloerp.com",
+  "port": 8124,
+  "environment": "POLO",
+  "username": "admin",
+  "password": "Polo@123$",
+   "serviceId": "R26E2S2W",
+   "num":1000,
+   "protocol":"https",
+  "certificate":"bEF0V3FJbmo5cVZYbEdCblB4QVpjMG9HVWFrc29GM2hiYWFkYWMyODRBUT0=",
+  "publicKey":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyU0xpdDRtb1RMbFdjd1A4eEp6RQp3ZTdkRHExdC9kMi9zcXdQTlNVandablFPbklabVh4TXY4QUQxemMxdUErZ3VCc2tpUGdoSXd6ekxWYXJoNk1KCndEdVUxSC95V2FPZE1PTnZOQy9OWERybXB5cE5WUDZyQnV3LzVjSERMdEtoZlJ0YkdFa1JSVVF4MVAxUUJ6REsKVVRpaTRJOXJld29zcVQ4V1dBOE8zRVd5ZHJ5TEg1K3JpVmRUNVBPeU1jcU95YUR2bGRqWG9ZdnBSTHlkcmtDQQpkUWpMdkw0bG00TVNxS05WdGVJR0Y4ZWk4M3Juck5wR3hKTVVGYVMwekt5TzBJZlY0alBCK3ZXN3I1TXdzTjRvCkRnWVR2ME85Q050N3JoNlEvYi9XR3Ewakl3WHJ3c3JIQXE4TXNyUVlGV0JIOHpmejMwOHRWMTlRM1hPTnEyWEMKMHdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
 }
