@@ -1,4 +1,6 @@
-POST http://localhost:3000/testSageX3/invoices
+# POST https://einvoicing-test.onrender.com/testSageX3/invoices
+POST https://einvoicing-test.onrender.com/testSageX3/mapped/ATC-ES01114-000002
+# POST http://localhost:3000/testSageX3/invoices
 # POST http://localhost:3000/testSageX3/mapped/ATC-ES01114-000002
 Content-Type: application/json
 
@@ -26,12 +28,14 @@ Content-Type: application/json
 ###
 
 
-POST http://localhost:3000/testSage300/AR/invoiceBatches
+# POST https://einvoicing-test.onrender.com/testSage300/AR/invoiceBatches
+POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1
+# POST http://localhost:3000/testSage300/AR/invoiceBatches
 # POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1
 Content-Type: application/json
 
-{
-  "server": "41.67.140.168",
+
+ { "server": "41.67.140.168",
 "company": "IETDAT", 
   "username": "admin",
  "password": "Sage@123",
@@ -52,9 +56,31 @@ Content-Type: application/json
 "firsClientSecret":"wGF5XHgUUhapoXFAMwhINsZutaBUNCdqOCY2RPnDF7dsfigU1Br1TfVSO2kN"
 }
 
+# {
+#   "server": "bml.ng",
+#   "company": "BMLDAT",
+#   "username": "adim",
+#   "password": "Adomos@2019",
+#   "serviceId": "R26E2S2W",
+#   "num":10,
+#   "firs_business_id":"62360f34-2e6b-4347-8616-292d75e11ece",
+#   "timeFrom": "2019-04-23",
+#       "party_name":"test name",
+#       "tin":"1234567890",
+#       "email":"test@gmail.co",
+#       "telephone":"08123456789",
+#       "postal_address":"test location",
+#       "country":"NG",
+#       "apiKey":"",
+#       "apiSecret":"",
+#       "protocol":"https",
+# "firsApiKey":"Fs0ySKwAD50Z72pQCR4tZh10Qcvv1c",
+# "firsClientSecret":"wGF5XHgUUhapoXFAMwhINsZutaBUNCdqOCY2RPnDF7dsfigU1Br1TfVSO2kN"
+# }
+
+
 
 ###
-
 
 
 

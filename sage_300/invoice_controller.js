@@ -1052,13 +1052,16 @@ async function fetchFromSage300Helper(
   }
   let baseUrl = "";
 
-  protocol === "http"
-    ? (baseUrl = `http://${server}/Sage300WebApi/v1.0/-/${encodeURIComponent(
-        company
-      )}/${basePath}`)
-    : `https://${server}/Sage300WebApi/v1.0/-/${encodeURIComponent(
-        company
-      )}/${basePath}`;
+  baseUrl =
+    protocol === "http"
+      ? `http://${server}/Sage300WebApi/v1.0/-/${encodeURIComponent(
+          company
+        )}/${basePath}`
+      : `https://${server}/Sage300WebApi/v1.0/-/${encodeURIComponent(
+          company
+        )}/${basePath}`;
+
+  console.log(baseUrl);
 
   // --- Single record fetch (unchanged behavior) ---
   if (id) {
@@ -1300,12 +1303,12 @@ async function fetchSage300ARInvoiceWithCustomerFirsformatted(req, res) {
     );
 
     // Generate encrypted payload + QR code
-    const encryptedBase64 = generateInvoiceQRCode(
-      invoiceJson.irn,
-      certificate,
-      publicKey
-    );
-    const qrDataUrl = await QRCode.toDataURL(encryptedBase64);
+    // const encryptedBase64 = generateInvoiceQRCode(
+    //   invoiceJson.irn,
+    //   certificate,
+    //   publicKey
+    // );
+    // const qrDataUrl = await QRCode.toDataURL(encryptedBase64);
 
     return res.status(200).json({
       success: true,
