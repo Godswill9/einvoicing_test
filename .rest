@@ -1,0 +1,14 @@
+POST http://localhost:3000/testSageX3/mapped/ATC-ES01114-000002
+Content-Type: application/json
+Authorization: Bearer 50feeac82cc4f6d9e7e7b7076306fa58531e67ae4fd54a0c8ee01f6391603ae6
+
+{
+  "server": "172.171.220.163",
+  "port": 8124,
+  "environment": "SEED",
+  "username": "admin",
+  "password": "Samuel@123456",
+      "serviceId": "R26E2S2W",
+    "num":1000,
+    "protocol":"http"
+}
