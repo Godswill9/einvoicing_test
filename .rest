@@ -1,7 +1,7 @@
 # POST https://einvoicing-test.onrender.com/testSageX3/invoices
-# POST https://einvoicing-test.onrender.com/testSageX3/mapped/ATC-ES01114-000002
+POST https://einvoicing-test.onrender.com/testSageX3/mapped/PRFADI010002
 # POST http://localhost:3000/testSageX3/invoices
-POST http://localhost:3000/testSageX3/mapped/ZAINV2501ADI01000001
+# POST http://localhost:3000/testSageX3/mapped/PRFADI010001
 # POST http://localhost:3000/testSageX3/mapped/ATC-ES01114-000002
 Content-Type: application/json
 
@@ -29,10 +29,10 @@ Content-Type: application/json
 ###
 
 
-POST https://einvoicing-test.onrender.com/testSage300/AR/invoiceBatches
-# POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1/comply
+# POST https://einvoicing-test.onrender.com/testSage300/AR/invoiceBatches
+# POST https://einvoicing-test.onrender.com/testSage300/AR/firs_invoice/2950/1/comply
 # POST http://localhost:3000/testSage300/AR/invoiceBatches
-# POST http://localhost:3000/testSage300/AR/firs_invoice/2950/1
+POST https://einvoicing-test.onrender.com/testSage300/AR/firs_invoice/2950/1
 Content-Type: application/json
 
 

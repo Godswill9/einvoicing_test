@@ -103,7 +103,7 @@ async function mapSage300ToInvoiceJsonTest(
     //   startDate: formatToYMD(invoiceBatch.BatchDate) || "",
     //   endDate: formatToYMD(invoiceBatch.BatchDate) || "",
     // },
-
+    billingReference:[],
     accountingSupplierParty: {
       partyName: supplierData.party_name || "",
       tin: supplierData.tin || "",
