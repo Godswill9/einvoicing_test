@@ -1,13 +1,14 @@
 # POST https://einvoicing-test.onrender.com/testSageX3/invoices
-POST https://einvoicing-test.onrender.com/testSageX3/mapped/ATC-ES01114-000002
+# POST https://einvoicing-test.onrender.com/testSageX3/mapped/ATC-ES01114-000002
 # POST http://localhost:3000/testSageX3/invoices
+POST http://localhost:3000/testSageX3/mapped/ZAINV2501ADI01000001
 # POST http://localhost:3000/testSageX3/mapped/ATC-ES01114-000002
 Content-Type: application/json
 
 {
   "server": "172.171.220.163",
   "port": 8124,
-  "environment": "SEED",
+  "environment": "Mixta1",
   "username": "admin",
   "password": "Samuel@123456",
   "serviceId": "R26E2S2W",
@@ -16,7 +17,7 @@ Content-Type: application/json
     "party_name": "Default Supplier",
     "tin":"13123123122",
     "email":"test@gmail.co",
-    "telephone":"08123456789",
+    "telephone":"+2348123456789",
     "postal_address":{
             "street_name":  "test street",
             "city_name": "test city",

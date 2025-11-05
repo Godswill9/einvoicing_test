@@ -191,21 +191,88 @@ function buildEnvSupplier(company) {
   };
 }
 
+// function buildEnvCustomer(company) {
+//   return {
+//     name: company?.name || "",
+//     tin: company?.TIN || "",
+//     email: company?.email || "",
+//     telephone: company?.phone || "",
+//     description: company?.business_description || "",
+//     address: {
+//       street_name: company?.street_name || "",
+//       city_name: company?.city || "",
+//       postal_zone: company?.zip_code || "",
+//       country: company?.country || "",
+//     },
+//   };
+// }
 function buildEnvCustomer(company) {
+  // Find the default address (where BPADEFFLG = true)
+  const defaultAddress =
+    company?.BPCBPRBPA?.find((addr) => addr.BPADEFFLG) ||
+    company?.BPCBPRBPA?.[0] ||
+    {};
+
+  // Extract email safely from nested structure
+  const emailEntry =
+    defaultAddress?.BPCBPRBPACOLWEB?.find((w) => w.WEBTYP === 1 && w.WEBADR) ||
+    {};
+
+  // Extract phone safely and sanitize for Sage
+  let phoneEntry =
+    defaultAddress?.BPCBPRBPACOLTEL?.find(
+      (t) => t.TELNUM && t.TELNUM.trim() !== ""
+    ) || {};
+  let cleanedPhone = phoneEntry.TELNUM?.replace(/[^\d]/g, "") || "";
+  if (cleanedPhone.length > 13) cleanedPhone = cleanedPhone.slice(0, 13); // prevent invalid length
+
+  // Get description and fallback values
+  const description =
+    company?.BPAINVNAM ||
+    company?.BUS_REF?.$description ||
+    company?.business_description ||
+    "";
+
   return {
-    name: company?.name || "",
-    tin: company?.TIN || "",
-    email: company?.email || "",
-    telephone: company?.phone || "",
-    description: company?.business_description || "",
+    id: company?.BPCNUM || "",
+    name:
+      company?.BPCBPRC_BPRNAM?.[0] ||
+      company?.BPCSHO ||
+      company?.BPAINVNAM ||
+      "",
+    tin: company?.CRN || company?.EECNUM || "",
+    email: emailEntry.WEBADR || company?.email || "",
+    telephone: cleanedPhone,
+    description,
     address: {
-      street_name: company?.street_name || "",
-      city_name: company?.city || "",
-      postal_zone: company?.zip_code || "",
-      country: company?.country || "",
+      street_name: [defaultAddress?.BPAADDLIG1, defaultAddress?.BPAADDLIG2]
+        .filter(Boolean)
+        .join(", "),
+      city_name: defaultAddress?.CTY || "",
+      postal_zone: defaultAddress?.POSCOD || "",
+      country:
+        defaultAddress?.CRYNAM ||
+        company?.CRY_REF?.$title ||
+        company?.CRY ||
+        "",
     },
   };
 }
+
+// "accounting_customer_party": {
+//   "id": "ES007",                        // → BPCNUM (Customer Code)
+//   "party_name": "Server Sistemas",      // → BPCBPRC_BPRNAM[0] or BPCSHO
+//   "tin": "A28599033",                   // → CRN (Tax Identification Number)
+//   "email": "",                          // → From BPCBPRBPACOLWEB (if exists)
+//   "telephone": "",                      // → From BPCBPRBPACOLTEL (if exists)
+//   "business_description": "Distribution", // → BUS_REF.$description or BUS_REF.$title
+//   "postal_address": {
+//     "street_name": "C/ Baleares, Edificio Torres", // → BPAADDLIG1 + BPAADDLIG2 from default BPCBPRBPA where BPADEFFLG = true
+//     "city_name": "MADRID",              // → CTY from same address
+//     "postal_zone": "28029",             // → POSCOD
+//     "country": "Spain"                  // → CRYNAM or CRY_REF.$title
+//   }
+// }
 
 async function fetchAndMapInvoice({ req, res, type }) {
   try {
@@ -239,7 +306,7 @@ async function fetchAndMapInvoice({ req, res, type }) {
         .status(400)
         .json({ message: "❌ Missing required parameters" });
     }
-
+    let customerResp;
     const baseUrl = `${protocol}://${server}:${port}/sdata/x3/erp/${encodeURIComponent(
       environment
     )}`;
@@ -314,7 +381,7 @@ async function fetchAndMapInvoice({ req, res, type }) {
 
         console.log(customerUrl);
         try {
-          const customerResp = await axios.get(customerUrl, {
+          customerResp = await axios.get(customerUrl, {
             auth: { username, password },
             headers: {
               Accept: "application/json",
@@ -322,10 +389,11 @@ async function fetchAndMapInvoice({ req, res, type }) {
             },
             httpsAgent: agent,
           });
-
+          // console.log(customerResp.data);
           customerData = customerResp?.data
-            ? formatParty(customerResp.data)
-            : buildEnvCustomer();
+            ? buildEnvCustomer(customerResp.data)
+            : // ? formatParty(customerResp.data)
+              buildEnvCustomer();
         } catch {
           customerData = buildEnvCustomer();
         }
@@ -408,17 +476,19 @@ function mapSageX3ToInvoiceJsonSinvoice(
     ),
     issue_date: invoiceData.INVDAT || "",
     due_date: invoiceData.CREDITMEMDAT || "", // Or set to terms-based date if needed
-    invoice_type_code: invoiceData.BPAINV || "", // e.g., A01
+    invoice_type_code: "381", // e.g., A01
+    // invoice_type_code: invoiceData.BPAINV || "", // e.g., A01// REMOVED FOR TESTING
     note: invoiceData.PTE || "", // Payment term note
     tax_point_date: invoiceData.INVDAT || "",
     document_currency_code: invoiceData.CUR || "",
     tax_currency_code: invoiceData.CUR || "",
     accounting_cost: `${invoiceData.AMTATI || 0} ${invoiceData.CUR || ""}`,
     buyer_reference: invoiceData.BPCINV || "",
-    invoice_delivery_period: {
-      start_date: invoiceData.REALDATE || "",
-      end_date: invoiceData.CREDITMEMDAT || "",
-    },
+
+    // invoice_delivery_period: {   //REMOVED FOR TESTING
+    //   start_date: invoiceData.REALDATE || "",
+    //   end_date: invoiceData.CREDITMEMDAT || "",
+    // },
 
     // Supplier
     accounting_supplier_party: supplierData || {
@@ -451,13 +521,13 @@ function mapSageX3ToInvoiceJsonSinvoice(
       },
     },
 
-    actual_delivery_date: invoiceData.REALDATE || "",
-    payment_means: [
-      {
-        payment_means_code: "10",
-        payment_due_date: invoiceData.CREDITMEMDAT || "",
-      },
-    ],
+    // actual_delivery_date: invoiceData.REALDATE || "", //REMOVED FOR TESTING
+    // payment_means: [  //REMOVED FOR TESTING
+    //   {
+    //     payment_means_code: "10",
+    //     payment_due_date: invoiceData.CREDITMEMDAT || "",
+    //   },
+    // ],
     payment_terms_note: invoiceData.PTE || "",
 
     // Charges / Discounts
