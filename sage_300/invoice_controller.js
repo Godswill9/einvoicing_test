@@ -103,7 +103,7 @@ async function mapSage300ToInvoiceJsonTest(
     //   startDate: formatToYMD(invoiceBatch.BatchDate) || "",
     //   endDate: formatToYMD(invoiceBatch.BatchDate) || "",
     // },
-    billingReference:[],
+    billingReference: [],
     accountingSupplierParty: {
       partyName: supplierData.party_name || "",
       tin: supplierData.tin || "",
@@ -1518,6 +1518,7 @@ async function fetchSage300ARInvoiceWithCustomerFirsformattedAndSign(req, res) {
         stage: "validation",
         success: validated,
         response: validationResponse,
+        invoiceJson: invoiceJson,
       });
     } catch (err) {
       results.push({
@@ -1526,6 +1527,7 @@ async function fetchSage300ARInvoiceWithCustomerFirsformattedAndSign(req, res) {
         stage: "validation",
         success: false,
         message: err.response?.data?.message || err.message,
+        invoiceJson: invoiceJson,
       });
     }
 
@@ -1552,6 +1554,7 @@ async function fetchSage300ARInvoiceWithCustomerFirsformattedAndSign(req, res) {
           stage: "sign",
           success: signed,
           response: signResponse,
+          invoiceJson: invoiceJson,
         });
       } catch (err) {
         results.push({
@@ -1560,6 +1563,7 @@ async function fetchSage300ARInvoiceWithCustomerFirsformattedAndSign(req, res) {
           stage: "sign",
           success: false,
           message: err.response?.data?.message || err.message,
+          invoiceJson: invoiceJson,
         });
       }
     }
